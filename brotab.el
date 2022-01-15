@@ -35,6 +35,9 @@
 (require 'tablist)
 (require 'subr-x)
 (require 'cl-lib)
+(require 'dash)
+(require 'consult)
+(require 'embark)
 
 (defgroup brotab nil
   "brotab customization group."
@@ -75,8 +78,8 @@
       (:generic-name . ,generic))))
 
 (defun brotab--client-to-browser (client)
-  (let* ((ppid (brotab-get-parent-from-pid (cdr (assoc :pid client))))
-         (pname (brotab-get-name-from-pid ppid)))
+  (let* ((ppid (brotab--get-parent-from-pid (cdr (assoc :pid client))))
+         (pname (brotab--get-name-from-pid ppid)))
     (seq-concatenate 'list client
                       `((:browser-pid . ,ppid)
                         (:browser-name . ,pname)))))
@@ -158,14 +161,12 @@
     (when selected
       (brotab--select-tab (get-text-property 0 'tab-id selected)))))
 
-(eval-after-load 'embark
-  (progn
-    (embark-define-keymap  embark-browse-tab-brotab-actions
-      "Keymap for actions for brotab browser tabs."
-      ("b" brotab-embark--select-tab)
-      ("k" brotab-embark--close-tab))
-    (add-to-list 'embark-keymap-alist '(browser-tab-brotab . embark-browser-tab-brotab-actions))
-    ""))
+(embark-define-keymap  embark-browser-tab-brotab-actions
+  "Keymap for actions for brotab browser tabs."
+  ("b" brotab-embark--select-tab)
+  ("k" brotab-embark--close-tab))
+
+(add-to-list 'embark-keymap-alist '(browser-tab-brotab . embark-browser-tab-brotab-actions))
 
 (defun brotab--format-tab-line (tab)
   (let* ((id (propertize (alist-get :tab-id tab)
