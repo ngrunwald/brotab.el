@@ -47,6 +47,9 @@
 (defcustom brotab-program "bt" "Name of the brotab program"
   :type 'string)
 
+(defcustom brotab-list-buffer-name "*Brotab*" "Name of the brotab list buffer"
+  :type 'string)
+
 
 (defun brotab--parse-tab-line (line)
   (-let* (((id title url) (s-split "\t" line t))
@@ -225,7 +228,7 @@
 (defun brotab-list-tabs ()
   "Displays the list of open browser tabs for batch actions."
   (interactive)
-  (switch-to-buffer "*Brotab*")
+  (switch-to-buffer brotab-list-buffer-name)
   (brotab-mode))
 
 (provide 'brotab)
