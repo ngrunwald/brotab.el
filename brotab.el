@@ -6,7 +6,7 @@
 ;; Created: 2022
 ;; Version: 0.1.0
 ;; Keywords: browser
-;; Package-Requires: ((tablist "20200427.2205") (s "20210616.619"))
+;; Package-Requires: ((tablist "20200427.2205") (s "20210616.619") (consult "20220111.1857") (embark "20220111.1739") (dash "20210826.1149"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -67,7 +67,7 @@
     (thread-last (process-lines brotab-program "list")
       (seq-map 'brotab--parse-tab-line)
       (seq-map (lambda (tab) (let* ((client-id (alist-get :client-id tab))
-                                    (browser (alist-get client-id (brotab--clients-map raw))))
+                                    (browser (cdr (assoc client-id (brotab--clients-map raw)))))
                                (seq-concatenate 'list tab browser)))))))
 
 (defun consult-brotab--lookup (_input cands cand)
@@ -81,7 +81,7 @@
       (:generic-name . ,generic))))
 
 (defun brotab--client-to-browser (client)
-  (let* ((ppid (brotab--get-parent-from-pid (cdr (assoc :pid client))))
+  (let* ((ppid (brotab--get-parent-from-pid (alist-get :pid client)))
          (pname (brotab--get-name-from-pid ppid)))
     (seq-concatenate 'list client
                       `((:browser-pid . ,ppid)
@@ -111,15 +111,15 @@
   (let ((tab-id (get-text-property 0 'tab-id cand)))
     (brotab--select-tab tab-id)))
 
-(defun brotab--close-tab (tab-id)
+(defun brotab--kill-tab (tab-id)
   (call-process  brotab-program
                  nil nil nil
                  "close"
                  tab-id))
 
-(defun brotab-embark--close-tab (cand)
+(defun brotab-embark--kill-tab (cand)
   (let ((tab-id (get-text-property 0 'tab-id cand)))
-    (brotab--close-tab tab-id)))
+    (brotab--kill-tab tab-id)))
 
 (defun brotab--get-parent-from-pid (pid)
   "Get the parent PID of given PID."
@@ -167,7 +167,7 @@
 (embark-define-keymap  embark-browser-tab-brotab-actions
   "Keymap for actions for brotab browser tabs."
   ("b" brotab-embark--select-tab)
-  ("k" brotab-embark--close-tab))
+  ("k" brotab-embark--kill-tab))
 
 (add-to-list 'embark-keymap-alist '(browser-tab-brotab . embark-browser-tab-brotab-actions))
 
@@ -188,8 +188,7 @@
 
 (defun brotab--tabs-list-refresh ()
   (interactive)
-  (setq-local tabulated-list-entries (brotab--tabs-list))
-  (tablist-revert))
+  (setq-local tabulated-list-entries (brotab--tabs-list)))
 
 (defun brotab-list-select-tab ()
   (interactive)
@@ -199,11 +198,11 @@
 (defun brotab-list-kill-tab ()
   (interactive)
   (let ((ids (seq-map 'car (tablist-get-marked-items))))
-    (seq-each 'brotab-close-tab ids)))
+    (seq-each 'brotab--kill-tab ids))
+  (tablist-revert))
 
 (defvar brotab-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "g") 'brotab--tabs-list-refresh)
     (define-key map (kbd "k") 'brotab-list-kill-tab)
     map)
   "Keymap for `brotab-mode'")
@@ -221,6 +220,7 @@
   (tabulated-list-init-header)
   (tablist-minor-mode)
   (local-set-key [return] 'brotab-list-select-tab)
+    (local-set-key [remap tablist-do-kill-lines] 'brotab-list-kill-tab)
   (tablist-revert)
   (view-mode))
 
