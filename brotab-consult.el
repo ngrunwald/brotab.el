@@ -79,12 +79,5 @@
     (when selected
       (brotab--select-tab (get-text-property 0 'tab-id selected)))))
 
-(embark-define-keymap  embark-browser-tab-brotab-actions
-  "Keymap for actions for brotab browser tabs."
-  ("b" brotab-embark--select-tab)
-  ("k" brotab-embark--kill-tab))
-
-(add-to-list 'embark-keymap-alist '(browser-tab-brotab . embark-browser-tab-brotab-actions))
-
 (provide 'brotab-consult)
 ;;; brotab-consult.el ends here
