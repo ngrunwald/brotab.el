@@ -133,11 +133,14 @@
     (when (not (string-blank-p nam))
       nam)))
 
+(defun brotab--browser-name (tab)
+  (s-concat (alist-get :browser-name tab) "-" (s-replace-regexp "\\.[0-9]+$" "" (alist-get :tab-id tab))))
+
 (defun consult-brotab--format-tab (max-size tab)
   (let* ((title (alist-get :title tab))
          (host (alist-get :host tab))
          (tab-id (alist-get :tab-id tab))
-         (browser-name (alist-get :browser-name tab)))
+         (browser-name (brotab--browser-name tab)))
     (thread-first (format (format "%%-%ds [%%s]" (+ max-size 5)) title host)
       (propertize 'tab-id tab-id
                    'host host
@@ -157,7 +160,7 @@
                                   :group (lambda (cand transform)
                                            (if transform
                                                cand
-                                             (get-text-property 0 'host cand)))
+                                             (get-text-property 0 'browser-name cand)))
                                   :annotate (lambda (cand)
                                               (format " <%s>"(get-text-property 0 'browser-name cand)))
                                   :lookup 'consult-brotab--lookup)))
@@ -174,7 +177,7 @@
 (defun brotab--format-tab-line (tab)
   (let* ((id (propertize (alist-get :tab-id tab)
                          'tab tab))
-         (bname (s-concat (alist-get :browser-name tab) "-" (s-replace "." "" (alist-get :client-id tab))))
+         (bname (brotab--browser-name tab))
          (columns (vector
                    (alist-get :title tab)
                    (alist-get :host tab)
