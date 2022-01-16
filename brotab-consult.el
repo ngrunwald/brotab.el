@@ -59,7 +59,7 @@
                    'browser-name browser-name))))
 
 ;;;###autoload
-(defun consult-brotab ()
+(defun brotab-consult ()
   "Completing interface to browser tabs."
   (interactive)
   (let* ((tabs (brotab--collect-tabs))
@@ -67,7 +67,7 @@
          (candidates (seq-map (-partial 'consult-brotab--format-tab max-size) tabs))
          (selected (consult--read candidates
                                   :prompt "Tab: "
-                                  :category 'browser-tab-brotab
+                                  :category brotab-completion-category
                                   :require-match t
                                   :group (lambda (cand transform)
                                            (if transform

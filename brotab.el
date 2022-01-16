@@ -183,5 +183,35 @@
   (switch-to-buffer brotab-list-buffer-name)
   (brotab-mode))
 
+(defun brotab--complete-tab (max-size tab)
+  (let* ((title (alist-get :title tab))
+         (host (alist-get :host tab))
+         (tab-id (alist-get :tab-id tab))
+         (browser-name (brotab--browser-name tab)))
+    (list
+     (thread-first (format (format "%%-%ds [%%s]" (+ max-size 5)) title host)
+       (propertize 'tab-id tab-id
+                   'host host
+                   'browser-name browser-name))
+     tab)))
+
+(defun brotab--annotate-candidate (s)
+  (format " <%s>"(get-text-property 0 'browser-name s)))
+
+(defconst brotab-completion-category 'brotab-browser-tabs)
+
+;;;###autoload
+(defun brotab-complete ()
+  "completing-read interface to browser tabs."
+  (interactive)
+  (let* ((tabs (brotab--collect-tabs))
+         (max-size (apply 'max (seq-map (lambda (tab) (length (cdr (assoc :title tab)))) tabs)))
+         (candidates (seq-map (-partial 'brotab--complete-tab max-size) tabs))
+         (completion-extra-properties (list :annotation-function 'brotab--annotate-candidate
+                                            :category 'brotab-completion-category))
+         (selected (completing-read "Tab: " candidates nil t)))
+    (when selected
+      (brotab--select-tab (alist-get :tab-id (cadr (assoc selected candidates)))))))
+
 (provide 'brotab)
 ;;; brotab.el ends here
