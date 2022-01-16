@@ -6,7 +6,7 @@
 ;; Created: 2022
 ;; Version: 0.1.0
 ;; Keywords: browser
-;; Package-Requires: ((tablist "20200427.2205") (s "20210616.619") (consult "20220111.1857") (embark "20220111.1739") (dash "20210826.1149"))
+;; Package-Requires: ((tablist "20200427.2205") (s "20210616.619") (dash "20210826.1149"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -36,8 +36,6 @@
 (require 'subr-x)
 (require 'cl-lib)
 (require 'dash)
-(require 'consult)
-(require 'embark)
 
 (defgroup brotab nil
   "brotab customization group."
@@ -69,9 +67,6 @@
       (seq-map (lambda (tab) (let* ((client-id (alist-get :client-id tab))
                                     (browser (cdr (assoc client-id (brotab--clients-map raw)))))
                                (seq-concatenate 'list tab browser)))))))
-
-(defun consult-brotab--lookup (_input cands cand)
-  (seq-find (lambda (x) (string= cand x)) cands))
 
 (defun brotab--parse-client-line (line)
   (-let (((id endpoint pid generic) (s-split "\t" line t)))
@@ -107,19 +102,11 @@
                  "--focused"
                  tab-id))
 
-(defun brotab-embark--select-tab (cand)
-  (let ((tab-id (get-text-property 0 'tab-id cand)))
-    (brotab--select-tab tab-id)))
-
 (defun brotab--kill-tab (tab-id)
   (call-process  brotab-program
                  nil nil nil
                  "close"
                  tab-id))
-
-(defun brotab-embark--kill-tab (cand)
-  (let ((tab-id (get-text-property 0 'tab-id cand)))
-    (brotab--kill-tab tab-id)))
 
 (defun brotab--get-parent-from-pid (pid)
   "Get the parent PID of given PID."
@@ -135,44 +122,6 @@
 
 (defun brotab--browser-name (tab)
   (s-concat (alist-get :browser-name tab) "-" (s-replace-regexp "\\.[0-9]+$" "" (alist-get :tab-id tab))))
-
-(defun consult-brotab--format-tab (max-size tab)
-  (let* ((title (alist-get :title tab))
-         (host (alist-get :host tab))
-         (tab-id (alist-get :tab-id tab))
-         (browser-name (brotab--browser-name tab)))
-    (thread-first (format (format "%%-%ds [%%s]" (+ max-size 5)) title host)
-      (propertize 'tab-id tab-id
-                   'host host
-                   'browser-name browser-name))))
-
-;;;###autoload
-(defun consult-brotab ()
-  "Completing interface to browser tabs."
-  (interactive)
-  (let* ((tabs (brotab--collect-tabs))
-         (max-size (apply 'max (seq-map (lambda (tab) (length (cdr (assoc :title tab)))) tabs)))
-         (candidates (seq-map (-partial 'consult-brotab--format-tab max-size) tabs))
-         (selected (consult--read candidates
-                                  :prompt "Tab: "
-                                  :category 'browser-tab-brotab
-                                  :require-match t
-                                  :group (lambda (cand transform)
-                                           (if transform
-                                               cand
-                                             (get-text-property 0 'browser-name cand)))
-                                  :annotate (lambda (cand)
-                                              (format " <%s>"(get-text-property 0 'browser-name cand)))
-                                  :lookup 'consult-brotab--lookup)))
-    (when selected
-      (brotab--select-tab (get-text-property 0 'tab-id selected)))))
-
-(embark-define-keymap  embark-browser-tab-brotab-actions
-  "Keymap for actions for brotab browser tabs."
-  ("b" brotab-embark--select-tab)
-  ("k" brotab-embark--kill-tab))
-
-(add-to-list 'embark-keymap-alist '(browser-tab-brotab . embark-browser-tab-brotab-actions))
 
 (defun brotab--format-tab-line (tab)
   (let* ((id (propertize (alist-get :tab-id tab)
