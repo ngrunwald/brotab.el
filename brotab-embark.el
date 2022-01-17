@@ -45,7 +45,7 @@
   ("b" brotab-embark--select-tab)
   ("k" brotab-embark--kill-tab))
 
-(add-to-list 'embark-keymap-alist (list brotab-completion-category embark-browser-tab-brotab-actions))
+(add-to-list 'embark-keymap-alist '(brotab-browser-tabs . embark-browser-tab-brotab-actions))
 
 (provide 'brotab-embark)
 ;;; brotab-embark.el ends here
