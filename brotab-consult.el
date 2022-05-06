@@ -34,8 +34,8 @@
 (require 'consult)
 (require 'brotab)
 
-(defun consult-brotab--lookup (_input cands cand)
-  (seq-find (lambda (x) (string= cand x)) cands))
+(defun consult-brotab--lookup (selected cands _input _narrow)
+  (seq-find (lambda (x) (string= selected x)) cands))
 
 
 (defun brotab-embark--select-tab (cand)
