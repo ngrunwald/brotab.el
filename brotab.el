@@ -129,7 +129,7 @@
          (bname (brotab--browser-name tab))
          (columns (vector
                    (alist-get :title tab)
-                   (alist-get :host tab)
+                   (or (alist-get :host tab) "<none>")
                    bname
                    (alist-get :url tab))))
     (list id columns)))
@@ -185,7 +185,7 @@
 
 (defun brotab--complete-tab (max-size tab)
   (let* ((title (alist-get :title tab))
-         (host (alist-get :host tab))
+         (host (or (alist-get :host tab) "<none>"))
          (tab-id (alist-get :tab-id tab))
          (browser-name (brotab--browser-name tab)))
     (list
