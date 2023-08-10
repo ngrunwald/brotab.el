@@ -4,7 +4,7 @@
 ;; Author: Nils Grunwald
 ;; URL: https://github.com/ngrunwald/brotab.el
 ;; Created: 2022
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Keywords: browser consult completion
 ;; Package-Requires: ((embark "20220111.1739"))
 
@@ -40,10 +40,11 @@
   (let ((tab-id (get-text-property 0 'tab-id cand)))
     (brotab--kill-tab tab-id)))
 
-(embark-define-keymap  embark-browser-tab-brotab-actions
-  "Keymap for actions for brotab browser tabs."
-  ("b" brotab-embark--select-tab)
-  ("k" brotab-embark--kill-tab))
+(defvar-keymap  embark-browser-tab-brotab-actions
+  :doc "Keymap for actions for brotab browser tabs."
+  :parent embark-general-map
+  "b" #'brotab-embark--select-tab
+  "k" #'brotab-embark--kill-tab)
 
 (add-to-list 'embark-keymap-alist '(brotab-browser-tabs . embark-browser-tab-brotab-actions))
 
